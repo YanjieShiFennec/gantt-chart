@@ -50,9 +50,7 @@ export class GanttChart {
         this.ganttTasks = new GanttTasks(timeline, this.config);
 
         // 动态设置宽度
-        window.addEventListener('resize', function () {
-            resize();
-        });
+        window.addEventListener('resize', this.#resize);
 
         // 初始化 UI
         document.body.appendChild(this.container);
@@ -65,8 +63,8 @@ export class GanttChart {
     addTask(task) {
         this.eventManager.trigger("beforeTaskAdded", task);
         this.ganttTasks.addTask(task);
-        resize();
-        updateCells(this.config.rowHeight);
+        this.#resize();
+        this.#updateCells();
         this.eventManager.trigger("afterTaskAdded", task);
     }
 
@@ -74,57 +72,55 @@ export class GanttChart {
     on(event, handler) {
         this.eventManager.on(event, handler);
     }
-}
 
-function resize() {
-    const container = document.querySelector('.gantt_container');
-    container.style.width = window.innerWidth + 'px';
-    const contentWidth = container.scrollWidth; // 获取实际内容宽度
-    document.querySelectorAll('.gantt_scale, .gantt_timeline').forEach(el => {
-        el.style.width = contentWidth + 'px';
-    });
-}
+    #resize = () => {
+        this.container.style.width = window.innerWidth + 'px';
+        const contentWidth = this.container.scrollWidth; // 获取实际内容宽度
+        document.querySelectorAll('.gantt_scale, .gantt_timeline').forEach(el => {
+            el.style.width = contentWidth + 'px';
+        });
+    }
 
-function updateCells(rowHeight) {
-    const container = document.querySelector('.gantt_container');
-    const cellWidth = 100;
-    const taskRows = document.querySelectorAll('.gantt_task_row');
-    const cellCount = Math.floor(container.scrollWidth / cellWidth);
+    #updateCells = () => {
+        const cellWidth = 100;
+        const taskRows = document.querySelectorAll('.gantt_task_row');
+        const cellCount = Math.floor(this.container.scrollWidth / cellWidth);
 
-    // create cells
-    taskRows.forEach((taskRow, index) => {
-        const curCellCount = taskRow.querySelectorAll('.gantt_task_cell').length;
-        if (cellCount > curCellCount) {
-            for (let i = 0; i < cellCount - curCellCount; i++) {
-                const cell = DOMUtils.createElement("div", "gantt_task_cell");
-                cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
-                cell.style.width = cellWidth + "px";
-                cell.style.height = rowHeight + "px";
-                taskRow.appendChild(cell);
+        // create cells
+        taskRows.forEach((taskRow, index) => {
+            const curCellCount = taskRow.querySelectorAll('.gantt_task_cell').length;
+            if (cellCount > curCellCount) {
+                for (let i = 0; i < cellCount - curCellCount; i++) {
+                    const cell = DOMUtils.createElement("div", "gantt_task_cell");
+                    cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
+                    cell.style.width = cellWidth + "px";
+                    cell.style.height = this.config.rowHeight + "px";
+                    taskRow.appendChild(cell);
+                }
             }
-        }
-    });
+        });
 
-    // const curCellCount = taskRows.item(0).querySelectorAll('.gantt_task_cell').length;
-    // if (cellCount > curCellCount) {
-    //     // create cells
-    //     taskRows.forEach((taskRow, index) => {
-    //         for (let i = 0; i < cellCount - curCellCount; i++) {
-    //             console.log(index, i);
-    //             const cell = DOMUtils.createElement("div", "gantt_task_cell");
-    //             cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
-    //             cell.style.width = cellWidth + "px";
-    //             cell.style.height = rowHeight + "px";
-    //             taskRow.appendChild(cell);
-    //         }
-    //     });
-    // } else if (cellCount < curCellCount) {
-    //     // delete  cells
-    //     taskRows.forEach((taskRow, index) => {
-    //         for (let i = 0; i < curCellCount - cellCount; i++) {
-    //             const cell = taskRow.querySelector('#gantt_cell_' + index + "_" + (i + cellCount));
-    //             taskRow.removeChild(cell);
-    //         }
-    //     });
-    // }
+        // const curCellCount = taskRows.item(0).querySelectorAll('.gantt_task_cell').length;
+        // if (cellCount > curCellCount) {
+        //     // create cells
+        //     taskRows.forEach((taskRow, index) => {
+        //         for (let i = 0; i < cellCount - curCellCount; i++) {
+        //             console.log(index, i);
+        //             const cell = DOMUtils.createElement("div", "gantt_task_cell");
+        //             cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
+        //             cell.style.width = cellWidth + "px";
+        //             cell.style.height = rowHeight + "px";
+        //             taskRow.appendChild(cell);
+        //         }
+        //     });
+        // } else if (cellCount < curCellCount) {
+        //     // delete  cells
+        //     taskRows.forEach((taskRow, index) => {
+        //         for (let i = 0; i < curCellCount - cellCount; i++) {
+        //             const cell = taskRow.querySelector('#gantt_cell_' + index + "_" + (i + cellCount));
+        //             taskRow.removeChild(cell);
+        //         }
+        //     });
+        // }
+    }
 }
