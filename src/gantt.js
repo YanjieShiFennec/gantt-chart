@@ -30,6 +30,20 @@ class GanttTasks {
         gridContent.innerHTML = taskName;
         gridRow.appendChild(gridContent);
 
+        // 同步 hover
+        gridRow.addEventListener('mouseover', () => {
+            taskRow.classList.add('hover');
+        });
+        gridRow.addEventListener('mouseout', () => {
+            taskRow.classList.remove('hover');
+        });
+        taskRow.addEventListener('mouseover', () => {
+            gridRow.classList.add('hover');
+        });
+        taskRow.addEventListener('mouseout', () => {
+            gridRow.classList.remove('hover');
+        });
+
         if (task.start < this.offset) {
             this.offset = task.start;
 
@@ -57,12 +71,20 @@ class GanttTasks {
 export class GanttChart {
     constructor(config) {
         this.container = DOMUtils.createElement('div', 'gantt_container');
+        const layout = DOMUtils.createElement('div', 'gantt_layout');
+
         const grid = DOMUtils.createElement("div", "gantt_grid");
         const gridScale = DOMUtils.createElement("div", "gantt_grid_scale");
         const gridArea = DOMUtils.createElement("div", "gantt_grid_area");
+
         this.timeline = DOMUtils.createElement("div", "gantt_timeline");
         const taskScale = DOMUtils.createElement("div", "gantt_task_scale");
         const taskArea = DOMUtils.createElement("div", "gantt_task_area");
+
+        const horizontalScroll = DOMUtils.createElement("div", "gantt_horizontal_scroll");
+        const horizontalScrollLine = DOMUtils.createElement("div", "gantt_horizontal_scroll_line");
+        const verticalScroll = DOMUtils.createElement("div", "gantt_vertical_scroll");
+        const verticalScrollLine = DOMUtils.createElement("div", "gantt_vertical_scroll_line");
 
         // console.log('create container');
         this.config = mergeConfig(config);
@@ -74,24 +96,62 @@ export class GanttChart {
 
         // 初始化 UI
         document.body.appendChild(this.container);
+        // gantt_layout
+        layout.style.height = "calc(100% - " + this.config.scrollSize + "px)"
+        this.container.appendChild(layout);
+
         // gantt_grid
         grid.style.width = this.config.gridWidth + "px";
-        this.container.appendChild(grid);
+        layout.appendChild(grid);
         // gantt_grid_scale
         gridScale.style.height = this.config.scaleHeight + "px";
         grid.appendChild(gridScale);
         // gantt_grid_area
         gridArea.style.height = "calc(100% - " + this.config.scaleHeight + "px)";
         grid.appendChild(gridArea);
+
         // gantt_timeline
-        this.timeline.style.width = "calc(100% - " + this.config.gridWidth + "px)";
-        this.container.appendChild(this.timeline);
+        this.timeline.style.width = "calc(100% - " + (this.config.gridWidth + this.config.scrollSize) + "px)";
+        layout.appendChild(this.timeline);
         // gantt_task_scale
         taskScale.style.height = this.config.scaleHeight + "px";
         this.timeline.appendChild(taskScale);
         // gantt_task_area
         taskArea.style.height = "calc(100% - " + this.config.scaleHeight + "px)";
         this.timeline.appendChild(taskArea);
+
+        // gantt_vertical_scroll
+        verticalScroll.style.width = this.config.scrollSize + "px";
+        layout.appendChild(verticalScroll);
+        verticalScroll.appendChild(verticalScrollLine);
+        // gantt_horizontal_scroll
+        horizontalScroll.style.height = this.config.scrollSize + "px";
+        this.container.appendChild(horizontalScroll);
+        horizontalScroll.appendChild(horizontalScrollLine);
+
+        // 同步 scroll
+        this.timeline.addEventListener('scroll', () => {
+            // vertical
+            grid.scrollTop = this.timeline.scrollTop;
+            verticalScroll.scrollTop = this.timeline.scrollTop;
+
+            // horizontal
+            horizontalScroll.scrollLeft = this.timeline.scrollLeft;
+        });
+        grid.addEventListener('scroll', () => {
+            // vertical
+            this.timeline.scrollTop = grid.scrollTop;
+            verticalScroll.scrollTop = grid.scrollTop;
+        });
+        verticalScroll.addEventListener('scroll', () => {
+            // vertical
+            this.timeline.scrollTop = verticalScroll.scrollTop;
+            grid.scrollTop = verticalScroll.scrollTop;
+        });
+        horizontalScroll.addEventListener('scroll', () => {
+            // horizontal
+            this.timeline.scrollLeft = horizontalScroll.scrollLeft;
+        });
     }
 
     addTask(task) {
@@ -108,15 +168,18 @@ export class GanttChart {
     }
 
     #resize = () => {
+        const contentWidth = this.timeline.scrollWidth + "px";
         document.querySelectorAll('.gantt_task_scale, .gantt_task_area').forEach(el => {
-            el.style.width = this.timeline.scrollWidth + 'px';
+            el.style.width = contentWidth;
         });
+        document.querySelector('.gantt_vertical_scroll_line').style.height = this.timeline.scrollHeight + 'px';
+        document.querySelector('.gantt_horizontal_scroll_line').style.width = contentWidth;
     }
 
     #updateCells = () => {
         const cellWidth = 100;
         const taskRows = document.querySelectorAll('.gantt_task_row');
-        const cellCount = Math.floor(this.timeline.scrollWidth / cellWidth);
+        const cellCount = Math.floor(this.timeline.scrollWidth / cellWidth) - 1;
 
         // create cells
         taskRows.forEach((taskRow, index) => {
