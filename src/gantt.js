@@ -4,33 +4,48 @@ import {mergeConfig} from "./config";
 import './style.css';
 
 class GanttTasks {
-    constructor(container, config) {
-        this.container = container;
+    constructor(taskArea, gridArea, config) {
+        this.taskArea = taskArea;
+        this.gridArea = gridArea;
         this.config = config;
         this.tasks = [];
         this.offset = 0;
     }
 
     addTask(task) {
+        const taskName = task.name || '';
+        const contentTop = (this.config.rowHeight - this.config.barHeight) / 2 + "px";
+
+        // gantt_task_row
         const taskRow = DOMUtils.createElement("div", "gantt_task_row");
         taskRow.style.height = this.config.rowHeight + "px";
-        this.container.appendChild(taskRow);
+        this.taskArea.appendChild(taskRow);
+        // gantt_grid_row
+        const gridRow = DOMUtils.createElement("div", "gantt_grid_row");
+        gridRow.style.height = this.config.rowHeight + "px";
+        this.gridArea.appendChild(gridRow);
+        // gantt_grid_content
+        const gridContent = DOMUtils.createElement("span", "gantt_grid_content");
+        gridContent.style.top = contentTop;
+        gridContent.innerHTML = taskName;
+        gridRow.appendChild(gridContent);
 
         if (task.start < this.offset) {
             this.offset = task.start;
 
             // update all task bars
-            this.container.querySelectorAll(".gantt_task_bar").forEach((taskBar) => {
+            this.taskArea.querySelectorAll(".gantt_task_bar").forEach((taskBar) => {
                 taskBar.style.left = taskBar.dataset.start - this.offset + "px";
             });
         }
 
+        // gantt_task_bar
         const taskBar = DOMUtils.createElement("div", "gantt_task_bar");
         taskBar.style.lineHeight = taskBar.style.height = this.config.barHeight + "px";
-        taskBar.style.top = (this.config.rowHeight - this.config.barHeight) / 2 + "px";
+        taskBar.style.top = contentTop;
         taskBar.style.left = task.start - this.offset + "px";
         taskBar.style.width = task.end - task.start + "px";
-        taskBar.innerHTML = task.name || '';
+        taskBar.innerHTML = taskName;
         taskBar.dataset.start = task.start;
         taskRow.appendChild(taskBar);
 
@@ -41,23 +56,42 @@ class GanttTasks {
 
 export class GanttChart {
     constructor(config) {
-        const scale = DOMUtils.createElement("div", "gantt_scale");
-        const timeline = DOMUtils.createElement("div", "gantt_timeline");
         this.container = DOMUtils.createElement('div', 'gantt_container');
+        const grid = DOMUtils.createElement("div", "gantt_grid");
+        const gridScale = DOMUtils.createElement("div", "gantt_grid_scale");
+        const gridArea = DOMUtils.createElement("div", "gantt_grid_area");
+        this.timeline = DOMUtils.createElement("div", "gantt_timeline");
+        const taskScale = DOMUtils.createElement("div", "gantt_task_scale");
+        const taskArea = DOMUtils.createElement("div", "gantt_task_area");
+
         // console.log('create container');
         this.config = mergeConfig(config);
         this.eventManager = new EventManager();
-        this.ganttTasks = new GanttTasks(timeline, this.config);
+        this.ganttTasks = new GanttTasks(taskArea, gridArea, this.config);
 
         // 动态设置宽度
         window.addEventListener('resize', this.#resize);
 
         // 初始化 UI
         document.body.appendChild(this.container);
-        scale.style.height = this.config.scaleHeight + "px";
-        this.container.appendChild(scale);
-        timeline.style.height = "calc(100% - " + this.config.scaleHeight + "px)";
-        this.container.appendChild(timeline);
+        // gantt_grid
+        grid.style.width = this.config.gridWidth + "px";
+        this.container.appendChild(grid);
+        // gantt_grid_scale
+        gridScale.style.height = this.config.scaleHeight + "px";
+        grid.appendChild(gridScale);
+        // gantt_grid_area
+        gridArea.style.height = "calc(100% - " + this.config.scaleHeight + "px)";
+        grid.appendChild(gridArea);
+        // gantt_timeline
+        this.timeline.style.width = "calc(100% - " + this.config.gridWidth + "px)";
+        this.container.appendChild(this.timeline);
+        // gantt_task_scale
+        taskScale.style.height = this.config.scaleHeight + "px";
+        this.timeline.appendChild(taskScale);
+        // gantt_task_area
+        taskArea.style.height = "calc(100% - " + this.config.scaleHeight + "px)";
+        this.timeline.appendChild(taskArea);
     }
 
     addTask(task) {
@@ -74,17 +108,15 @@ export class GanttChart {
     }
 
     #resize = () => {
-        this.container.style.width = window.innerWidth + 'px';
-        const contentWidth = this.container.scrollWidth; // 获取实际内容宽度
-        document.querySelectorAll('.gantt_scale, .gantt_timeline').forEach(el => {
-            el.style.width = contentWidth + 'px';
+        document.querySelectorAll('.gantt_task_scale, .gantt_task_area').forEach(el => {
+            el.style.width = this.timeline.scrollWidth + 'px';
         });
     }
 
     #updateCells = () => {
         const cellWidth = 100;
         const taskRows = document.querySelectorAll('.gantt_task_row');
-        const cellCount = Math.floor(this.container.scrollWidth / cellWidth);
+        const cellCount = Math.floor(this.timeline.scrollWidth / cellWidth);
 
         // create cells
         taskRows.forEach((taskRow, index) => {
@@ -92,7 +124,7 @@ export class GanttChart {
             if (cellCount > curCellCount) {
                 for (let i = 0; i < cellCount - curCellCount; i++) {
                     const cell = DOMUtils.createElement("div", "gantt_task_cell");
-                    cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
+                    // cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
                     cell.style.width = cellWidth + "px";
                     cell.style.height = this.config.rowHeight + "px";
                     taskRow.appendChild(cell);
