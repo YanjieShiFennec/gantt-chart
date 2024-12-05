@@ -3,6 +3,7 @@ const DefaultConfig = {
     barHeight: 20,
     scaleHeight: 80,
     gridWidth: 250,
+    scrollSize: 15,
     taskColor: "#3498db",
 };
 
