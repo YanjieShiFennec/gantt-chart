@@ -80,13 +80,16 @@ export class GanttChart {
         const timeline = DOMUtils.createElement("div", "gantt_timeline");
         const taskScale = DOMUtils.createElement("div", "gantt_task_scale");
         const taskContent = DOMUtils.createElement("div", "gantt_task_content");
+
+        const scaleLayout = DOMUtils.createElement("div", "gantt_scale_layout");
+
         this.taskLayout = DOMUtils.createElement("div", "gantt_task_layout");
         this.taskArea = DOMUtils.createElement("div", "gantt_task_area");
+        const verticalScroll = DOMUtils.createElement("div", "gantt_vertical_scroll");
+        const verticalScrollLine = DOMUtils.createElement("div", "gantt_vertical_scroll_line");
 
         const horizontalScroll = DOMUtils.createElement("div", "gantt_horizontal_scroll");
         const horizontalScrollLine = DOMUtils.createElement("div", "gantt_horizontal_scroll_line");
-        const verticalScroll = DOMUtils.createElement("div", "gantt_vertical_scroll");
-        const verticalScrollLine = DOMUtils.createElement("div", "gantt_vertical_scroll_line");
 
         // console.log('create container');
         this.config = mergeConfig(config);
@@ -117,10 +120,15 @@ export class GanttChart {
         layout.appendChild(timeline);
         // gantt_task_scale
         taskScale.style.height = this.config.scaleHeight + "px";
+        taskScale.style.width = "calc(100% - " + this.config.scrollSize + "px)";
         timeline.appendChild(taskScale);
         // gantt_task_content
         taskContent.style.height = "calc(100% - " + this.config.scaleHeight + "px)";
         timeline.appendChild(taskContent);
+
+        // gantt_scale_layout
+        taskScale.appendChild(scaleLayout);
+
         // gantt_task_layout
         this.taskLayout.style.width = "calc(100% - " + this.config.scrollSize + "px)";
         taskContent.appendChild(this.taskLayout);
@@ -145,6 +153,7 @@ export class GanttChart {
 
             // horizontal
             horizontalScroll.scrollLeft = this.taskArea.scrollLeft;
+            taskScale.scrollLeft = this.taskArea.scrollLeft;
         });
         gridArea.addEventListener('scroll', () => {
             // vertical
@@ -156,9 +165,15 @@ export class GanttChart {
             this.taskArea.scrollTop = verticalScroll.scrollTop;
             gridArea.scrollTop = verticalScroll.scrollTop;
         });
+        taskScale.addEventListener('scroll', () => {
+            // horizontal
+            this.taskArea.scrollLeft = taskScale.scrollLeft;
+            horizontalScroll.scrollLeft = taskScale.scrollLeft;
+        });
         horizontalScroll.addEventListener('scroll', () => {
             // horizontal
             this.taskArea.scrollLeft = horizontalScroll.scrollLeft;
+            taskScale.scrollLeft = horizontalScroll.scrollLeft;
         });
     }
 
@@ -176,7 +191,7 @@ export class GanttChart {
     }
 
     #resize = () => {
-        document.querySelectorAll('.gantt_task_scale, .gantt_task_row').forEach(el => {
+        document.querySelectorAll('.gantt_scale_layout, .gantt_task_row').forEach(el => {
             el.style.width = this.taskArea.scrollWidth + "px";
         });
         document.querySelector('.gantt_vertical_scroll_line').style.height = this.taskArea.scrollHeight + 'px';
@@ -188,7 +203,7 @@ export class GanttChart {
         const taskRows = document.querySelectorAll('.gantt_task_row');
         const cellCount = Math.floor(this.taskArea.scrollWidth / cellWidth) - 1;
 
-        // create cells
+        // create task row cells
         taskRows.forEach((taskRow, index) => {
             const curCellCount = taskRow.querySelectorAll('.gantt_task_cell').length;
             if (cellCount > curCellCount) {
@@ -201,6 +216,19 @@ export class GanttChart {
                 }
             }
         });
+
+        // create task scale cells
+        const scaleLayout = document.querySelector('.gantt_scale_layout');
+        const curCellCount = scaleLayout.querySelectorAll('.gantt_task_cell').length;
+        if (cellCount > curCellCount) {
+            for (let i = 0; i < cellCount - curCellCount; i++) {
+                const cell = DOMUtils.createElement("div", "gantt_task_cell");
+                // cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
+                cell.style.width = cellWidth + "px";
+                cell.style.height = this.config.scaleHeight + "px";
+                scaleLayout.appendChild(cell);
+            }
+        }
 
         // const curCellCount = taskRows.item(0).querySelectorAll('.gantt_task_cell').length;
         // if (cellCount > curCellCount) {

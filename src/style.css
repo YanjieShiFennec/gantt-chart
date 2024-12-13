@@ -59,15 +59,20 @@ html, body {
     border-right: 1px solid #a1a4a6;
 }
 
-.gantt_task_layout{
+.gantt_task_layout {
     display: inline-block;
     height: 100%;
 }
 
-.gantt_grid_area, .gantt_task_area{
+.gantt_grid_area, .gantt_task_area, .gantt_task_scale {
     height: 100%;
     overflow: scroll;
     scrollbar-width: none;
+}
+
+.gantt_task_area {
+    box-sizing: border-box;
+    border-right: 1px solid #a1a4a6;
 }
 
 .gantt_task_row, .gantt_grid_row {
