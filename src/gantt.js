@@ -77,9 +77,11 @@ export class GanttChart {
         const gridScale = DOMUtils.createElement("div", "gantt_grid_scale");
         const gridArea = DOMUtils.createElement("div", "gantt_grid_area");
 
-        this.timeline = DOMUtils.createElement("div", "gantt_timeline");
+        const timeline = DOMUtils.createElement("div", "gantt_timeline");
         const taskScale = DOMUtils.createElement("div", "gantt_task_scale");
-        const taskArea = DOMUtils.createElement("div", "gantt_task_area");
+        const taskContent = DOMUtils.createElement("div", "gantt_task_content");
+        this.taskLayout = DOMUtils.createElement("div", "gantt_task_layout");
+        this.taskArea = DOMUtils.createElement("div", "gantt_task_area");
 
         const horizontalScroll = DOMUtils.createElement("div", "gantt_horizontal_scroll");
         const horizontalScrollLine = DOMUtils.createElement("div", "gantt_horizontal_scroll_line");
@@ -89,10 +91,10 @@ export class GanttChart {
         // console.log('create container');
         this.config = mergeConfig(config);
         this.eventManager = new EventManager();
-        this.ganttTasks = new GanttTasks(taskArea, gridArea, this.config);
+        this.ganttTasks = new GanttTasks(this.taskArea, gridArea, this.config);
 
         // 动态设置宽度
-        window.addEventListener('resize', this.#resize);
+        // window.addEventListener('resize', this.#resize);
 
         // 初始化 UI
         document.body.appendChild(this.container);
@@ -111,19 +113,24 @@ export class GanttChart {
         grid.appendChild(gridArea);
 
         // gantt_timeline
-        this.timeline.style.width = "calc(100% - " + (this.config.gridWidth + this.config.scrollSize) + "px)";
-        layout.appendChild(this.timeline);
+        timeline.style.width = "calc(100% - " + this.config.gridWidth + "px)";
+        layout.appendChild(timeline);
         // gantt_task_scale
         taskScale.style.height = this.config.scaleHeight + "px";
-        this.timeline.appendChild(taskScale);
+        timeline.appendChild(taskScale);
+        // gantt_task_content
+        taskContent.style.height = "calc(100% - " + this.config.scaleHeight + "px)";
+        timeline.appendChild(taskContent);
+        // gantt_task_layout
+        this.taskLayout.style.width = "calc(100% - " + this.config.scrollSize + "px)";
+        taskContent.appendChild(this.taskLayout);
         // gantt_task_area
-        taskArea.style.height = "calc(100% - " + this.config.scaleHeight + "px)";
-        this.timeline.appendChild(taskArea);
-
+        this.taskLayout.appendChild(this.taskArea);
         // gantt_vertical_scroll
         verticalScroll.style.width = this.config.scrollSize + "px";
-        layout.appendChild(verticalScroll);
+        taskContent.appendChild(verticalScroll);
         verticalScroll.appendChild(verticalScrollLine);
+
         // gantt_horizontal_scroll
         horizontalScroll.style.height = this.config.scrollSize + "px";
         horizontalScroll.style.width = "calc(100% - " + this.config.scrollSize + "px)";
@@ -131,27 +138,27 @@ export class GanttChart {
         horizontalScroll.appendChild(horizontalScrollLine);
 
         // 同步 scroll
-        this.timeline.addEventListener('scroll', () => {
+        this.taskArea.addEventListener('scroll', () => {
             // vertical
-            grid.scrollTop = this.timeline.scrollTop;
-            verticalScroll.scrollTop = this.timeline.scrollTop;
+            gridArea.scrollTop = this.taskArea.scrollTop;
+            verticalScroll.scrollTop = this.taskArea.scrollTop;
 
             // horizontal
-            horizontalScroll.scrollLeft = this.timeline.scrollLeft;
+            horizontalScroll.scrollLeft = this.taskArea.scrollLeft;
         });
-        grid.addEventListener('scroll', () => {
+        gridArea.addEventListener('scroll', () => {
             // vertical
-            this.timeline.scrollTop = grid.scrollTop;
-            verticalScroll.scrollTop = grid.scrollTop;
+            this.taskArea.scrollTop = gridArea.scrollTop;
+            verticalScroll.scrollTop = gridArea.scrollTop;
         });
         verticalScroll.addEventListener('scroll', () => {
             // vertical
-            this.timeline.scrollTop = verticalScroll.scrollTop;
-            grid.scrollTop = verticalScroll.scrollTop;
+            this.taskArea.scrollTop = verticalScroll.scrollTop;
+            gridArea.scrollTop = verticalScroll.scrollTop;
         });
         horizontalScroll.addEventListener('scroll', () => {
             // horizontal
-            this.timeline.scrollLeft = horizontalScroll.scrollLeft;
+            this.taskArea.scrollLeft = horizontalScroll.scrollLeft;
         });
     }
 
@@ -169,17 +176,17 @@ export class GanttChart {
     }
 
     #resize = () => {
-        document.querySelectorAll('.gantt_task_scale, .gantt_task_area').forEach(el => {
-            el.style.width = this.timeline.scrollWidth + "px";
+        document.querySelectorAll('.gantt_task_scale, .gantt_task_row').forEach(el => {
+            el.style.width = this.taskArea.scrollWidth + "px";
         });
-        document.querySelector('.gantt_vertical_scroll_line').style.height = this.timeline.scrollHeight + 'px';
-        document.querySelector('.gantt_horizontal_scroll_line').style.width = (this.timeline.scrollWidth + this.config.gridWidth) + "px";
+        document.querySelector('.gantt_vertical_scroll_line').style.height = this.taskArea.scrollHeight + 'px';
+        document.querySelector('.gantt_horizontal_scroll_line').style.width = (this.taskArea.scrollWidth + this.config.gridWidth) + "px";
     }
 
     #updateCells = () => {
         const cellWidth = 100;
         const taskRows = document.querySelectorAll('.gantt_task_row');
-        const cellCount = Math.floor(this.timeline.scrollWidth / cellWidth) - 1;
+        const cellCount = Math.floor(this.taskArea.scrollWidth / cellWidth) - 1;
 
         // create cells
         taskRows.forEach((taskRow, index) => {

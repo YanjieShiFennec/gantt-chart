@@ -28,20 +28,36 @@ npm run build
     </style>
 </head>
 <body>
+<div>
+    <!--<button onclick="add()">add</button>-->
+</div>
 <script src="./main.js"></script>
 <script>
     const gantt = Gantt.GanttChart;
-    const tasks = [
-        {start: 0, end: 100},
-        {start: 200, end: 300},
-        {start: 150, end: 300},
-    ];
+
+    const tasks = [];
+    const count = 50;
+    for (let i = 1; i < 1 + count; i++) {
+        tasks.push({name: 'Task' + i, start: 100 * (i - 1), end: 100 * (i + 5)});
+        // tasks.push({name: 'Task' + i, start: -100 * (i + 1), end: -100 * (i - 1)});
+    }
+    // tasks.push({name: 'Task' + (tasks.length + 1), start: -100, end: 50});
+    // tasks.push({name: 'Task' + (tasks.length + 1), start: -200, end: 100});
+    // tasks.push({name: 'Task' + (tasks.length + 1), start: -300, end: 100});
+    // tasks.push({name: 'Task' + (tasks.length + 1), start: -400, end: 200});
+
     const config = [];
     const chart = new gantt(config);
     chart.on('afterTaskAdded', task => {
         console.log('Task added: ', task.name, task.start, task.end);
     });
     tasks.forEach(task => chart.addTask(task));
+
+    function add() {
+        // tasks.push({name: 'Task' + (tasks.length + 1), start: 100 * tasks.length, end: 100 * (tasks.length + 2)});
+        tasks.push({name: 'Task' + (tasks.length + 1), start: -200, end: 0});
+        chart.addTask(tasks[tasks.length - 1]);
+    }
 </script>
 </body>
 </html>

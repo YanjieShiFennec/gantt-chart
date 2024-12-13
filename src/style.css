@@ -10,7 +10,8 @@ html, body {
     width: 100vw;
     height: 100vh;
     box-sizing: border-box;
-    border: 1px solid #0e0e0e;
+    border: 1px solid #a1a4a6;
+    /*margin: 5px;*/
 }
 
 .gantt_layout {
@@ -20,15 +21,15 @@ html, body {
     display: inline-block;
     height: 100%;
     float: left;
-    overflow: auto;
-    scrollbar-width: none;
+    /*overflow: auto;*/
+    /*scrollbar-width: none;*/
 }
 
 .gantt_timeline {
     display: inline-block;
     height: 100%;
-    overflow: auto;
-    scrollbar-width: none;
+    /*overflow: auto;*/
+    /*scrollbar-width: none;*/
 }
 
 .gantt_horizontal_scroll {
@@ -37,8 +38,9 @@ html, body {
 }
 
 .gantt_vertical_scroll {
+    display: inline-block;
     height: 100%;
-    float: right;
+    /*float: right;*/
     overflow-x: hidden;
     overflow-y: scroll;
 }
@@ -53,18 +55,29 @@ html, body {
 
 .gantt_task_scale, .gantt_grid_scale {
     box-sizing: border-box;
-    border-bottom: 1px solid #0e0e0e;
-    border-right: 1px solid #0e0e0e;
+    border-bottom: 1px solid #a1a4a6;
+    border-right: 1px solid #a1a4a6;
+}
+
+.gantt_task_layout{
+    display: inline-block;
+    height: 100%;
+}
+
+.gantt_grid_area, .gantt_task_area{
+    height: 100%;
+    overflow: scroll;
+    scrollbar-width: none;
 }
 
 .gantt_task_row, .gantt_grid_row {
     position: relative;
     box-sizing: border-box;
-    border-bottom: 1px solid cornflowerblue;
+    border-bottom: 1px solid rgba(238, 238, 235, 1);
 }
 
 .gantt_grid_row {
-    border-right: 1px solid #0e0e0e;
+    border-right: 1px solid #a1a4a6;
     text-align: center;
 }
 
