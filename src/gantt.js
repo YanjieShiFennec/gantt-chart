@@ -66,6 +66,10 @@ class GanttTasks {
         task.id = this.tasks.length;
         this.tasks.push(task);
     }
+
+    getOffset() {
+        return this.offset;
+    }
 }
 
 export class GanttChart {
@@ -179,9 +183,11 @@ export class GanttChart {
 
     addTask(task) {
         this.eventManager.trigger("beforeTaskAdded", task);
+
         this.ganttTasks.addTask(task);
         this.#resize();
         this.#updateCells();
+
         this.eventManager.trigger("afterTaskAdded", task);
     }
 
@@ -201,7 +207,7 @@ export class GanttChart {
     #updateCells = () => {
         const cellWidth = 100;
         const taskRows = document.querySelectorAll('.gantt_task_row');
-        const cellCount = Math.floor(this.taskArea.scrollWidth / cellWidth) - 1;
+        const cellCount = Math.floor(this.taskArea.scrollWidth / cellWidth);
 
         // create task row cells
         taskRows.forEach((taskRow, index) => {
@@ -217,17 +223,28 @@ export class GanttChart {
             }
         });
 
-        // create task scale cells
         const scaleLayout = document.querySelector('.gantt_scale_layout');
-        const curCellCount = scaleLayout.querySelectorAll('.gantt_task_cell').length;
+        let scaleCells = scaleLayout.querySelectorAll('.gantt_scale_cell');
+        const offset = this.ganttTasks.getOffset();
+        // create task scale cells
+        const curCellCount = scaleCells.length;
         if (cellCount > curCellCount) {
             for (let i = 0; i < cellCount - curCellCount; i++) {
-                const cell = DOMUtils.createElement("div", "gantt_task_cell");
+                const cell = DOMUtils.createElement("div", "gantt_scale_cell");
                 // cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
+                cell.innerHTML = cellWidth * (i + curCellCount) + offset;
                 cell.style.width = cellWidth + "px";
-                cell.style.height = this.config.scaleHeight + "px";
+                cell.style.lineHeight = cell.style.height = this.config.scaleHeight + "px";
                 scaleLayout.appendChild(cell);
             }
+        }
+        // update scale text
+        scaleCells = scaleLayout.querySelectorAll('.gantt_scale_cell');
+        const curOffset = parseInt(scaleCells.item(0).innerHTML);
+        if (offset !== curOffset) {
+            scaleCells.forEach((cell, index) => {
+                cell.innerHTML = cellWidth * index + offset;
+            });
         }
 
         // const curCellCount = taskRows.item(0).querySelectorAll('.gantt_task_cell').length;

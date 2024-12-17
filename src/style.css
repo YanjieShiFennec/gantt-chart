@@ -17,19 +17,16 @@ html, body {
 .gantt_layout {
 }
 
-.gantt_grid {
-    display: inline-block;
-    height: 100%;
-    float: left;
-    /*overflow: auto;*/
-    /*scrollbar-width: none;*/
-}
+/*.gantt_grid {*/
+/*    float: left;*/
+/*}*/
 
-.gantt_timeline {
+.gantt_grid, .gantt_timeline {
     display: inline-block;
     height: 100%;
-    /*overflow: auto;*/
-    /*scrollbar-width: none;*/
+
+    box-sizing: border-box;
+    border-bottom: 1px solid #a1a4a6;
 }
 
 .gantt_horizontal_scroll {
@@ -100,12 +97,16 @@ html, body {
     font-size: 0;
 }
 
-.gantt_task_cell {
+.gantt_task_cell, .gantt_scale_cell {
     display: inline-block;
     /*float: left;*/
     box-sizing: border-box;
     /*border-right: 1px solid rgba(234, 233, 230, 0.8);*/
     border-right: 1px solid rgba(238, 238, 235, 1);
+}
+
+.gantt_scale_cell{
+    /*text-align: center;*/
 }
 
 .gantt_task_bar {
