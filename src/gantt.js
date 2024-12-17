@@ -2,6 +2,7 @@ import {EventManager} from "./events";
 import {DOMUtils} from "./dom";
 import {mergeConfig} from "./config";
 import './style.css';
+import dayjs from "dayjs";
 
 class GanttTasks {
     constructor(taskArea, gridArea, config) {
@@ -9,7 +10,7 @@ class GanttTasks {
         this.gridArea = gridArea;
         this.config = config;
         this.tasks = [];
-        this.offset = 0;
+        this.offset = dayjs();
     }
 
     addTask(task) {
@@ -44,12 +45,14 @@ class GanttTasks {
             gridRow.classList.remove('hover');
         });
 
-        if (task.start < this.offset) {
+        task.start = dayjs(task.start);
+        task.end = dayjs(task.end);
+        if (task.start.isBefore(this.offset, 'day')) {
             this.offset = task.start;
 
             // update all task bars
             this.taskArea.querySelectorAll(".gantt_task_bar").forEach((taskBar) => {
-                taskBar.style.left = taskBar.dataset.start - this.offset + "px";
+                taskBar.style.left = dayjs(taskBar.dataset.start).diff(this.offset, 'day') * this.config.cellWidth + "px";
             });
         }
 
@@ -57,10 +60,10 @@ class GanttTasks {
         const taskBar = DOMUtils.createElement("div", "gantt_task_bar");
         taskBar.style.lineHeight = taskBar.style.height = this.config.barHeight + "px";
         taskBar.style.top = contentTop;
-        taskBar.style.left = task.start - this.offset + "px";
-        taskBar.style.width = task.end - task.start + "px";
+        taskBar.style.left = task.start.diff(this.offset, 'day') * this.config.cellWidth + "px";
+        taskBar.style.width = (task.end.diff(task.start, 'day') + 1) * this.config.cellWidth + "px";
         taskBar.innerHTML = taskName;
-        taskBar.dataset.start = task.start;
+        taskBar.dataset.start = task.start.format('YYYY-MM-DD');
         taskRow.appendChild(taskBar);
 
         task.id = this.tasks.length;
@@ -205,7 +208,7 @@ export class GanttChart {
     }
 
     #updateCells = () => {
-        const cellWidth = 100;
+        const cellWidth = this.config.cellWidth;
         const taskRows = document.querySelectorAll('.gantt_task_row');
         const cellCount = Math.floor(this.taskArea.scrollWidth / cellWidth);
 
@@ -232,7 +235,9 @@ export class GanttChart {
             for (let i = 0; i < cellCount - curCellCount; i++) {
                 const cell = DOMUtils.createElement("div", "gantt_scale_cell");
                 // cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
-                cell.innerHTML = cellWidth * (i + curCellCount) + offset;
+                const date = offset.add((i + curCellCount), 'day');
+                cell.dataset.date = date.format('YYYY-MM-DD');
+                cell.innerHTML = date.format('DD');
                 cell.style.width = cellWidth + "px";
                 cell.style.lineHeight = cell.style.height = this.config.scaleHeight + "px";
                 scaleLayout.appendChild(cell);
@@ -240,10 +245,12 @@ export class GanttChart {
         }
         // update scale text
         scaleCells = scaleLayout.querySelectorAll('.gantt_scale_cell');
-        const curOffset = parseInt(scaleCells.item(0).innerHTML);
-        if (offset !== curOffset) {
+        const curOffset = dayjs(scaleCells.item(0).dataset.date);
+        if (!offset.isSame(curOffset, 'day')) {
             scaleCells.forEach((cell, index) => {
-                cell.innerHTML = cellWidth * index + offset;
+                const date = offset.add(index, 'day');
+                cell.dataset.date = date.format('YYYY-MM-DD');
+                cell.innerHTML = date.format('DD');
             });
         }
 

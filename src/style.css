@@ -106,7 +106,7 @@ html, body {
 }
 
 .gantt_scale_cell{
-    /*text-align: center;*/
+    text-align: center;
 }
 
 .gantt_task_bar {

@@ -36,15 +36,10 @@ npm run build
     const gantt = Gantt.GanttChart;
 
     const tasks = [];
-    const count = 50;
-    for (let i = 1; i < 1 + count; i++) {
-        tasks.push({name: 'Task' + i, start: 100 * (i - 1), end: 100 * (i + 5)});
-        // tasks.push({name: 'Task' + i, start: -100 * (i + 1), end: -100 * (i - 1)});
-    }
-    // tasks.push({name: 'Task' + (tasks.length + 1), start: -100, end: 50});
-    // tasks.push({name: 'Task' + (tasks.length + 1), start: -200, end: 100});
-    // tasks.push({name: 'Task' + (tasks.length + 1), start: -300, end: 100});
-    // tasks.push({name: 'Task' + (tasks.length + 1), start: -400, end: 200});
+    tasks.push({name: 'Task' + (tasks.length + 1), start: '2024-12-20', end: '2024-12-22'});
+    tasks.push({name: 'Task' + (tasks.length + 1), start: '2024-12-10', end: '2024-12-20'});
+    tasks.push({name: 'Task' + (tasks.length + 1), start: '2024-12-9', end: '2024-12-15'});
+    tasks.push({name: 'Task' + (tasks.length + 1), start: '2024-11-26', end: '2024-12-15'});
 
     const config = [];
     const chart = new gantt(config);
