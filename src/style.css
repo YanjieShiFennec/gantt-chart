@@ -105,6 +105,11 @@ html, body {
     border-right: 1px solid rgba(238, 238, 235, 1);
 }
 
+.gantt_scale_year_layout, .gantt_scale_month_layout{
+    box-sizing: border-box;
+    border-bottom: 1px solid rgba(238, 238, 235, 1);
+}
+
 .gantt_scale_cell{
     text-align: center;
 }

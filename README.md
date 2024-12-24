@@ -34,6 +34,7 @@ npm run build
 <script src="./main.js"></script>
 <script>
     const gantt = Gantt.GanttChart;
+    const dayjs = Gantt.dayjs;
 
     const tasks = [];
     tasks.push({name: 'Task' + (tasks.length + 1), start: '2024-12-20', end: '2024-12-22'});
@@ -41,21 +42,31 @@ npm run build
     tasks.push({name: 'Task' + (tasks.length + 1), start: '2024-12-9', end: '2024-12-15'});
     tasks.push({name: 'Task' + (tasks.length + 1), start: '2024-11-26', end: '2024-12-15'});
 
+    let date = dayjs('2024-11-26');
+    for (let i = 0; i < 10; i++) {
+        tasks.push({
+            name: 'Task' + (tasks.length + 1),
+            start: date.format('YYYY-MM-DD'),
+            end: date.add(2, 'day').format('YYYY-MM-DD')
+        });
+        date = date.add(1, 'day');
+    }
+
     const config = [];
     const chart = new gantt(config);
     chart.on('afterTaskAdded', task => {
-        console.log('Task added: ', task.name, task.start, task.end);
+        console.log('Task added: ', task.name, task.start.format('YYYY-MM-DD'), task.end.format('YYYY-MM-DD'));
     });
     tasks.forEach(task => chart.addTask(task));
 
     function add() {
-        // tasks.push({name: 'Task' + (tasks.length + 1), start: 100 * tasks.length, end: 100 * (tasks.length + 2)});
-        tasks.push({name: 'Task' + (tasks.length + 1), start: -200, end: 0});
+        tasks.push({name: 'Task' + (tasks.length + 1), start: date.format('YYYY-MM-DD'), end: date.add(2, 'day').format('YYYY-MM-DD')});
         chart.addTask(tasks[tasks.length - 1]);
     }
 </script>
 </body>
 </html>
+
 
 ```
 

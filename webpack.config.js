@@ -20,4 +20,12 @@ module.exports = {
             },
         ],
     },
+    // externals: {
+    //     lodash: {
+    //         commonjs: 'dayjs',
+    //         commonjs2: 'dayjs',
+    //         amd: 'dayjs',
+    //         root: 'dayjs',
+    //     },
+    // },
 };
