@@ -15,6 +15,9 @@ class GanttTasks {
 
     addTask(task) {
         const taskName = task.name || '';
+        const taskStart = dayjs(task.start);
+        const taskEnd = dayjs(task.end);
+        const taskDuration = taskEnd.diff(taskStart, 'day') + 1;
         const contentTop = (this.config.rowHeight - this.config.barHeight) / 2 + "px";
 
         // gantt_task_row
@@ -25,11 +28,35 @@ class GanttTasks {
         const gridRow = DOMUtils.createElement("div", "gantt_grid_row");
         gridRow.style.height = this.config.rowHeight + "px";
         this.gridArea.appendChild(gridRow);
-        // gantt_grid_content
-        const gridContent = DOMUtils.createElement("span", "gantt_grid_content");
-        gridContent.style.top = contentTop;
-        gridContent.innerHTML = taskName;
-        gridRow.appendChild(gridContent);
+
+        // gantt_grid_name
+        const gridName = DOMUtils.createElement("div", "gantt_cell");
+        gridName.style.width = this.config.gridNameWidth + "px";
+        gridRow.appendChild(gridName);
+        const gridNameContent = DOMUtils.createElement("span", "gantt_grid_content");
+        gridNameContent.style.top = contentTop;
+        gridNameContent.innerHTML = taskName;
+        gridName.appendChild(gridNameContent);
+
+        // gantt_grid_start
+        const gridStart = DOMUtils.createElement("div", "gantt_cell");
+        gridStart.style.width = this.config.gridStartWidth + "px";
+        gridRow.appendChild(gridStart);
+        const gridStartContent = DOMUtils.createElement("span", "gantt_grid_content");
+        gridStartContent.style.top = contentTop;
+        gridStartContent.innerHTML = task.start;
+        gridStart.appendChild(gridStartContent);
+
+        // gantt_grid_duration
+        const gridDuration = DOMUtils.createElement("div", "gantt_cell");
+        // gridDuration.style.borderRight = 'none';
+        // gridDuration.style.width = this.config.gridDurationWidth + "px";
+        gridDuration.style.width = "calc(100% - " + (this.config.gridNameWidth + this.config.gridStartWidth) + "px)";
+        gridRow.appendChild(gridDuration);
+        const gridDurationContent = DOMUtils.createElement("span", "gantt_grid_content");
+        gridDurationContent.style.top = contentTop;
+        gridDurationContent.innerHTML = taskDuration;
+        gridDuration.appendChild(gridDurationContent);
 
         // 同步 hover
         gridRow.addEventListener('mouseover', () => {
@@ -45,10 +72,10 @@ class GanttTasks {
             gridRow.classList.remove('hover');
         });
 
-        task.start = dayjs(task.start);
-        task.end = dayjs(task.end);
-        if (task.start.isBefore(this.offset, 'day')) {
-            this.offset = task.start;
+        // task.start = dayjs(task.start);
+        // task.end = dayjs(task.end);
+        if (taskStart.isBefore(this.offset, 'day')) {
+            this.offset = taskStart;
 
             // update all task bars
             this.taskArea.querySelectorAll(".gantt_task_bar").forEach((taskBar) => {
@@ -58,13 +85,13 @@ class GanttTasks {
 
         // gantt_task_bar
         const taskBar = DOMUtils.createElement("div", "gantt_task_bar");
-        const left = task.start.diff(this.offset, 'day') * this.config.cellWidth;
+        const left = taskStart.diff(this.offset, 'day') * this.config.cellWidth;
         taskBar.style.lineHeight = taskBar.style.height = this.config.barHeight + "px";
         taskBar.style.top = contentTop;
         taskBar.style.left = left + "px";
-        taskBar.style.width = (task.end.diff(task.start, 'day') + 1) * this.config.cellWidth + "px";
+        taskBar.style.width = taskDuration * this.config.cellWidth + "px";
         taskBar.innerHTML = taskName;
-        taskBar.dataset.start = task.start.format('YYYY-MM-DD');
+        taskBar.dataset.start = task.start;
         taskRow.appendChild(taskBar);
 
         task.id = this.tasks.length;
@@ -84,6 +111,9 @@ export class GanttChart {
 
         const grid = DOMUtils.createElement("div", "gantt_grid");
         const gridScale = DOMUtils.createElement("div", "gantt_grid_scale");
+        const gridScaleName = DOMUtils.createElement("div", "gantt_cell");
+        const gridScaleStart = DOMUtils.createElement("div", "gantt_cell");
+        const gridScaleDuration = DOMUtils.createElement("div", "gantt_cell");
         const gridArea = DOMUtils.createElement("div", "gantt_grid_area");
 
         const timeline = DOMUtils.createElement("div", "gantt_timeline");
@@ -123,21 +153,38 @@ export class GanttChart {
         grid.style.width = this.config.gridWidth + "px";
         layout.appendChild(grid);
         // gantt_grid_scale
-        gridScale.style.height = this.config.scaleHeight * 3 + "px";
+        const gridScaleHeight = this.config.scaleHeight * 3;
+        gridScale.style.height = gridScaleHeight + "px";
         grid.appendChild(gridScale);
+        // gridScaleName
+        gridScaleName.style.width = this.config.gridNameWidth + "px";
+        gridScaleName.style.lineHeight = gridScaleHeight + "px";
+        gridScaleName.innerHTML = 'Task Name';
+        gridScale.appendChild(gridScaleName);
+        // gridScaleStart
+        gridScaleStart.style.width = this.config.gridStartWidth + "px";
+        gridScaleStart.style.lineHeight = gridScaleHeight + "px";
+        gridScaleStart.innerHTML = 'Start Time';
+        gridScale.appendChild(gridScaleStart);
+        // gridScaleDuration
+        gridScaleDuration.style.width = "calc(100% - " + (this.config.gridNameWidth + this.config.gridStartWidth) + "px)";
+        gridScaleDuration.style.lineHeight = gridScaleHeight + "px";
+        gridScaleDuration.innerHTML = 'Duration';
+        gridScale.appendChild(gridScaleDuration);
+
         // gantt_grid_area
-        gridArea.style.height = "calc(100% - " + this.config.scaleHeight * 3 + "px)";
+        gridArea.style.height = "calc(100% - " + gridScaleHeight + "px)";
         grid.appendChild(gridArea);
 
         // gantt_timeline
         timeline.style.width = "calc(100% - " + this.config.gridWidth + "px)";
         layout.appendChild(timeline);
         // gantt_task_scale
-        taskScale.style.height = this.config.scaleHeight * 3 + "px";
+        taskScale.style.height = gridScaleHeight + "px";
         taskScale.style.width = "calc(100% - " + this.config.scrollSize + "px)";
         timeline.appendChild(taskScale);
         // gantt_task_content
-        taskContent.style.height = "calc(100% - " + this.config.scaleHeight * 3 + "px)";
+        taskContent.style.height = "calc(100% - " + gridScaleHeight + "px)";
         timeline.appendChild(taskContent);
 
         // gantt_scale_layout
@@ -231,10 +278,10 @@ export class GanttChart {
 
         // create task row cells
         taskRows.forEach((taskRow, index) => {
-            const curCellCount = taskRow.querySelectorAll('.gantt_task_cell').length;
+            const curCellCount = taskRow.querySelectorAll('.gantt_cell').length;
             if (cellCount > curCellCount) {
                 for (let i = 0; i < cellCount - curCellCount; i++) {
-                    const cell = DOMUtils.createElement("div", "gantt_task_cell");
+                    const cell = DOMUtils.createElement("div", "gantt_cell");
                     // cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
                     cell.style.width = cellWidth + "px";
                     cell.style.height = this.config.rowHeight + "px";
@@ -247,45 +294,44 @@ export class GanttChart {
         const scaleDayLayout = document.querySelector('.gantt_scale_day_layout');
         const scaleMonthLayout = document.querySelector('.gantt_scale_month_layout');
         const scaleYearLayout = document.querySelector('.gantt_scale_year_layout');
-        let scaleDayCells = scaleDayLayout.querySelectorAll('.gantt_scale_cell');
+        let scaleDayCells = scaleDayLayout.querySelectorAll('.gantt_cell');
         const offset = this.ganttTasks.getOffset();
         const curCellCount = scaleDayCells.length;
         if (cellCount > curCellCount) {
             for (let i = 0; i < cellCount - curCellCount; i++) {
                 const date = offset.add((i + curCellCount), 'day');
+                const dateStr = date.format('YYYY-MM-DD');
 
                 // gantt_scale_day_layout
-                const cell = DOMUtils.createElement("div", "gantt_scale_cell");
+                const cell = DOMUtils.createElement("div", "gantt_cell");
                 // cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
-                cell.dataset.date = date.format('YYYY-MM-DD');
+                cell.dataset.date = dateStr;
                 cell.innerHTML = date.format('DD');
                 cell.style.width = cellWidth + "px";
-                cell.style.lineHeight = cell.style.height = this.config.scaleHeight + "px";
+                cell.style.lineHeight = this.config.scaleHeight + "px";
                 scaleDayLayout.appendChild(cell);
 
                 // gantt_scale_month_layout
-                const cell1 = DOMUtils.createElement("div", "gantt_scale_cell");
-                // cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
-                cell1.dataset.date = date.format('YYYY-MM-DD');
+                const cell1 = DOMUtils.createElement("div", "gantt_cell");
+                cell1.dataset.date = dateStr;
                 cell1.innerHTML = date.format('MMM');
                 cell1.style.width = cellWidth + "px";
-                cell1.style.lineHeight = cell1.style.height = this.config.scaleHeight + "px";
+                cell1.style.lineHeight = this.config.scaleHeight + "px";
                 scaleMonthLayout.appendChild(cell1);
 
                 // gantt_scale_year_layout
-                const cell2 = DOMUtils.createElement("div", "gantt_scale_cell");
-                // cell.id = 'gantt_cell_' + index + "_" + (i + curCellCount);
-                cell2.dataset.date = date.format('YYYY-MM-DD');
+                const cell2 = DOMUtils.createElement("div", "gantt_cell");
+                cell2.dataset.date = dateStr;
                 cell2.innerHTML = date.format('YYYY');
                 cell2.style.width = cellWidth + "px";
-                cell2.style.lineHeight = cell2.style.height = this.config.scaleHeight + "px";
+                cell2.style.lineHeight = this.config.scaleHeight + "px";
                 scaleYearLayout.appendChild(cell2);
             }
         }
         // update scale text
-        scaleDayCells = scaleDayLayout.querySelectorAll('.gantt_scale_cell');
-        const scaleMonthCells = scaleMonthLayout.querySelectorAll('.gantt_scale_cell');
-        const scaleYearCells = scaleYearLayout.querySelectorAll('.gantt_scale_cell');
+        scaleDayCells = scaleDayLayout.querySelectorAll('.gantt_cell');
+        const scaleMonthCells = scaleMonthLayout.querySelectorAll('.gantt_cell');
+        const scaleYearCells = scaleYearLayout.querySelectorAll('.gantt_cell');
         let curOffset = dayjs(scaleDayCells.item(0).dataset.date);
         if (!offset.isSame(curOffset, 'day')) {
             for (let i = 0; i < scaleDayCells.length; i++) {

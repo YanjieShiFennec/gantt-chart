@@ -80,7 +80,7 @@ html, body {
 
 .gantt_grid_row {
     border-right: 1px solid #a1a4a6;
-    text-align: center;
+    /*text-align: center;*/
 }
 
 .gantt_grid_content {
@@ -97,21 +97,20 @@ html, body {
     font-size: 0;
 }
 
-.gantt_task_cell, .gantt_scale_cell {
+.gantt_cell {
+    height: 100%;
     display: inline-block;
     /*float: left;*/
     box-sizing: border-box;
     /*border-right: 1px solid rgba(234, 233, 230, 0.8);*/
     border-right: 1px solid rgba(238, 238, 235, 1);
+
+    text-align: center;
 }
 
 .gantt_scale_year_layout, .gantt_scale_month_layout{
     box-sizing: border-box;
     border-bottom: 1px solid rgba(238, 238, 235, 1);
-}
-
-.gantt_scale_cell{
-    text-align: center;
 }
 
 .gantt_task_bar {
