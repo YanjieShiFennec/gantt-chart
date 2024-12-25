@@ -92,6 +92,10 @@ html, body {
     background-color: rgba(0, 35, 245, 0.1);
 }
 
+.gantt_task_row.selected, .gantt_grid_row.selected {
+    background-color: rgba(0, 35, 245, 0.2);
+}
+
 .gantt_task_row {
     /* 消除 gantt_task_cell display: inline-block; 造成的垂直滚动到底部出现额外空白的现象 */
     font-size: 0;

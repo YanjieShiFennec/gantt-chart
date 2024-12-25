@@ -105,12 +105,12 @@ class GanttTasks {
         const addClickListener = (el) => {
             el.addEventListener('click', () => {
                 if (this.#lastClickId !== -1) {
-                    this.#gridRows[this.#lastClickId].style.backgroundColor = 'transparent';
-                    this.#taskRows[this.#lastClickId].style.backgroundColor = 'transparent';
+                    DOMUtils.removeClass(this.#gridRows[this.#lastClickId], 'selected');
+                    DOMUtils.removeClass(this.#taskRows[this.#lastClickId], 'selected');
                 }
                 this.#lastClickId = task.id;
-                gridRow.style.backgroundColor = 'rgba(0, 35, 245, 0.2)';
-                taskRow.style.backgroundColor = 'rgba(0, 35, 245, 0.2)';
+                DOMUtils.addClass(gridRow, 'selected');
+                DOMUtils.addClass(taskRow, 'selected');
             });
         }
         addClickListener(gridRow);
