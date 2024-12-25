@@ -7,6 +7,9 @@ import dayjs from "dayjs";
 class GanttTasks {
     #offset;
     #left;
+    #gridRows = {};
+    #taskRows = {};
+    #lastClickId = -1;
 
     constructor(taskArea, gridArea, config) {
         this.taskArea = taskArea;
@@ -98,8 +101,25 @@ class GanttTasks {
         taskBar.dataset.start = task.start;
         taskRow.appendChild(taskBar);
 
+        // 左键单击增加选中样式
+        const addClickListener = (el) => {
+            el.addEventListener('click', () => {
+                if (this.#lastClickId !== -1) {
+                    this.#gridRows[this.#lastClickId].style.backgroundColor = 'transparent';
+                    this.#taskRows[this.#lastClickId].style.backgroundColor = 'transparent';
+                }
+                this.#lastClickId = task.id;
+                gridRow.style.backgroundColor = 'rgba(0, 35, 245, 0.2)';
+                taskRow.style.backgroundColor = 'rgba(0, 35, 245, 0.2)';
+            });
+        }
+        addClickListener(gridRow);
+        addClickListener(taskBar);
+
         task.id = this.tasks.length;
         this.tasks.push(task);
+        this.#gridRows[task.id] = gridRow;
+        this.#taskRows[task.id] = taskRow;
         this.#left = left;
     }
 
@@ -107,7 +127,7 @@ class GanttTasks {
         return this.#offset;
     }
 
-    getLeft(){
+    getLeft() {
         return this.#left;
     }
 }
