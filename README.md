@@ -43,7 +43,7 @@ npm run build
     tasks.push({name: 'Task' + (tasks.length + 1), start: '2024-11-26', end: '2024-12-15'});
 
     let date = dayjs('2024-11-26');
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 100; i++) {
         tasks.push({
             name: 'Task' + (tasks.length + 1),
             start: date.format('YYYY-MM-DD'),
@@ -55,9 +55,9 @@ npm run build
     const config = [];
     const chart = new gantt(config);
     chart.on('afterTaskAdded', task => {
-        console.log('Task added: ', task.name, task.start.format('YYYY-MM-DD'), task.end.format('YYYY-MM-DD'));
+        console.log('Task added: ', task.name, task.start, task.end);
     });
-    tasks.forEach(task => chart.addTask(task));
+    chart.addBatchTasks(tasks);
 
     function add() {
         tasks.push({name: 'Task' + (tasks.length + 1), start: date.format('YYYY-MM-DD'), end: date.add(2, 'day').format('YYYY-MM-DD')});
@@ -66,8 +66,6 @@ npm run build
 </script>
 </body>
 </html>
-
-
 ```
 
 ## Reference

@@ -5,12 +5,16 @@ import './style.css';
 import dayjs from "dayjs";
 
 class GanttTasks {
+    #offset;
+    #left;
+
     constructor(taskArea, gridArea, config) {
         this.taskArea = taskArea;
         this.gridArea = gridArea;
         this.config = config;
         this.tasks = [];
-        this.offset = dayjs();
+        this.#offset = dayjs();
+        this.#left = 0; // 最近增加的任务的 left 值
     }
 
     addTask(task) {
@@ -74,18 +78,18 @@ class GanttTasks {
 
         // task.start = dayjs(task.start);
         // task.end = dayjs(task.end);
-        if (taskStart.isBefore(this.offset, 'day')) {
-            this.offset = taskStart;
+        if (taskStart.isBefore(this.#offset, 'day')) {
+            this.#offset = taskStart;
 
             // update all task bars
             this.taskArea.querySelectorAll(".gantt_task_bar").forEach((taskBar) => {
-                taskBar.style.left = dayjs(taskBar.dataset.start).diff(this.offset, 'day') * this.config.cellWidth + "px";
+                taskBar.style.left = dayjs(taskBar.dataset.start).diff(this.#offset, 'day') * this.config.cellWidth + "px";
             });
         }
 
         // gantt_task_bar
         const taskBar = DOMUtils.createElement("div", "gantt_task_bar");
-        const left = taskStart.diff(this.offset, 'day') * this.config.cellWidth;
+        const left = taskStart.diff(this.#offset, 'day') * this.config.cellWidth;
         taskBar.style.lineHeight = taskBar.style.height = this.config.barHeight + "px";
         taskBar.style.top = contentTop;
         taskBar.style.left = left + "px";
@@ -96,11 +100,15 @@ class GanttTasks {
 
         task.id = this.tasks.length;
         this.tasks.push(task);
-        return left;
+        this.#left = left;
     }
 
     getOffset() {
-        return this.offset;
+        return this.#offset;
+    }
+
+    getLeft(){
+        return this.#left;
     }
 }
 
@@ -245,17 +253,22 @@ export class GanttChart {
     }
 
     addTask(task) {
-        this.eventManager.trigger("beforeTaskAdded", task);
+        this.addBatchTasks([task]);
+    }
 
-        const left = this.ganttTasks.addTask(task);
+    addBatchTasks(tasks) {
+        tasks.forEach(task => {
+            this.eventManager.trigger("beforeTaskAdded", task);
+            this.ganttTasks.addTask(task);
+            this.eventManager.trigger("afterTaskAdded", task);
+        });
+
         this.#resize();
         this.#updateCells();
 
-        // 强制滚动到该任务行
+        // 强制滚动到最近增加的任务行
         this.taskArea.scrollTop = this.taskArea.scrollHeight;
-        this.taskArea.scrollLeft = left;
-
-        this.eventManager.trigger("afterTaskAdded", task);
+        this.taskArea.scrollLeft = this.ganttTasks.getLeft();
     }
 
     // 注册事件
